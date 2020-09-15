@@ -5,8 +5,8 @@ class DetailViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
     
-    var album: Album!
-    var arrayOfTracks = [Track]()
+    var album: NewAlbum!
+    var arrayOfNewTracks = [NewTrack]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,7 +19,7 @@ class DetailViewController: UIViewController {
         self.view?.addSubview(activityInd)
         
         // делаем запрос на треки по ID альбома
-        let urlString = "https://itunes.apple.com/lookup?id=\(album.albumID)&entity=song"
+        let urlString = "https://itunes.apple.com/lookup?id=\(album.albumID ?? 0)&entity=song"
         let url = URL(string: urlString)
         let task = URLSession.shared.dataTask(with: url!) { (data, response, error) in
             // если нет интернета или какие-то ошибки - уберем спиннер и ничего не покажем
@@ -32,16 +32,11 @@ class DetailViewController: UIViewController {
             }
             // если всё ок - разбираем ответ
             do {
-                let json = try JSONSerialization.jsonObject(with: data!, options: []) as! [String: Any]
-                let jsonResults = json["results"] as! [[String: Any]]
-                
-                for eachFetchedTrack in jsonResults {
-                    if eachFetchedTrack["wrapperType"] as! String == "track" {
-                        let trackName = eachFetchedTrack["trackName"] as? String ?? "None"
-                        let trackDuration = eachFetchedTrack["trackTimeMillis"] as? Double ?? 0
-                        self.arrayOfTracks.append(Track(trackName: trackName, trackDuration: trackDuration))
-                    }
+                let parsedResult: TrackListResponse = try JSONDecoder().decode(TrackListResponse.self, from: data!)
+                for eachNewTrack in parsedResult.results {
+                    if eachNewTrack.trackName != nil { self.arrayOfNewTracks.append(eachNewTrack)}
                 }
+
                 // уберем спиннер и обновим данные в таблице
                 DispatchQueue.main.async {
                     activityInd.removeFromSuperview()
@@ -58,7 +53,6 @@ class DetailViewController: UIViewController {
 }
 
 extension DetailViewController: UITableViewDelegate, UITableViewDataSource {
-    
 
     // ячейка-заголовок с данными об альбоме и ее высота
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -74,7 +68,7 @@ extension DetailViewController: UITableViewDelegate, UITableViewDataSource {
     // нижняя ячейка с копирайтом и ее высота
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
         let cell = tableView.dequeueReusableCell(withIdentifier: "AboutCell") as! AboutCell
-        cell.setAbout(copyright: album.copyright)
+        cell.setAbout(copyright: album.copyright!)
         return cell
     }
     
@@ -84,7 +78,7 @@ extension DetailViewController: UITableViewDelegate, UITableViewDataSource {
     
     // количество треков
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return arrayOfTracks.count
+        return arrayOfNewTracks.count
     }
     
     // высота ячеек-треков
@@ -95,7 +89,7 @@ extension DetailViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         // формируем в таблице ячейки-треки
         let cell = tableView.dequeueReusableCell(withIdentifier: "TrackCell") as! TrackCell
-        cell.setTrackCell(trackName: arrayOfTracks[indexPath.row].trackName, number: indexPath.row + 1, duration: arrayOfTracks[indexPath.row].trackDuration)
+        cell.setTrackCell(trackName: arrayOfNewTracks[indexPath.row].trackName ?? "None", number: indexPath.row + 1, duration: arrayOfNewTracks[indexPath.row].trackTimeMillis ?? 0)
         return cell
     }
     

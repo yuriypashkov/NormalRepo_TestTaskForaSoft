@@ -12,13 +12,13 @@ class HeaderCell: UITableViewCell {
     @IBOutlet weak var yearLabel: UILabel!
 
     
-    func setHeader(album: Album) {
-        albumLabel.text = album.albumTitle
-        artistLabel.text = album.artist
-        genreLabel.text = album.genre
-        currencyLabel.text = "\(album.albumPrice) \(album.currency)"
-        yearLabel.text = album.releaseDate
-        albumCover.lazyDownloadImage(link: album.imageURL100px)
+    func setHeader(album: NewAlbum) {
+        albumLabel.text = album.albumTitle!
+        artistLabel.text = album.artist!
+        genreLabel.text = album.genre!
+        currencyLabel.text = "\(album.albumPrice!) \(album.currency!)"
+        yearLabel.text = album.releaseDate!
+        albumCover.lazyDownloadImage(link: album.imageURL100px!)
     }
     
 }

@@ -15,6 +15,7 @@ class AlbumViewCell: UICollectionViewCell {
         albumTitleLabel.text = albumTitle
         artistLabel.text = artist
         yearLabel.text = year
+        albumCover.image = UIImage(named: "white")
         albumCover.lazyDownloadImage(link: imageUrl)
     }
 }
